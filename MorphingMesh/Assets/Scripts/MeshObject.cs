@@ -5,12 +5,10 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-[RequireComponent(typeof(MeshCollider))]
+//[RequireComponent(typeof(MeshCollider))]
 
 public class MeshObject : MonoBehaviour {
 
-//	public bool resetToCube = false;
-//	public bool stop = false;
 
 	[Range(-5.0f,5.0f)] public float bottomlengthX = 1f; 
 	[Range(-5.0f,5.0f)] public float bottomlengthY = 1f; 
@@ -26,147 +24,195 @@ public class MeshObject : MonoBehaviour {
 	Vector3 v1 = Vector3.zero; //right (bottom, front, right)
 	Vector3 v2 = Vector3.zero; //right (bottom, back, right)
 	Vector3 v3 = Vector3.zero; //left (bottom, back, left)
+
 	Vector3 v4 = Vector3.zero; //left (top, front, left)
 	Vector3 v5 = Vector3.zero; //right (top, front, right)
 	Vector3 v6 = Vector3.zero; //right (top, back, right)
 	Vector3 v7 = Vector3.zero; //left (top, back, left)
+
 	Vector3 v8 = Vector3.zero; //left (mid, front, left)
 	Vector3 v9 = Vector3.zero; //right (mid, front, right)
 	Vector3 v10 = Vector3.zero; //right (mid, back, right)
 	Vector3 v11 = Vector3.zero; //left (mid, back, left)
 
-//	float topTargetX = 1.0f;
-//	float topTargetY = 1.0f;
-//	float topTargetZ = 1.0f;
-//	float topPreTargetX = 1.0f;
-//	float topPreTargetY = 1.0f;
-//	float topPreTargetZ = 1.0f;
-//
-//	float midTargetX = 1.0f;
-//	float midTargetY = 0.0f;
-//	float midTargetZ = 1.0f;
-//	float midPreTargetX = 1.0f;
-//	float midPreTargetY = 0.0f;
-//	float midPreTargetZ = 1.0f;
-//
-//	float bottomTargetX = 1.0f;
-//	float bottomTargetY = 1.0f;
-//	float bottomTargetZ = 1.0f;
-//	float bottomPreTargetX = 1.0f;
-//	float bottomPreTargetY = 1.0f;
-//	float bottomPreTargetZ = 1.0f;
+	Vector3 v12 = Vector3.zero; //right +2 (top, front, right)
+	Vector3 v13 = Vector3.zero; //right +2 (top, back, right)
+	Vector3 v14 = Vector3.zero; //right +2 (mid, front, right)
+	Vector3 v15 = Vector3.zero; //right +2 (mid, back, right)
+	Vector3 v16 = Vector3.zero; //right +2 (bottom, front, right)
+	Vector3 v17 = Vector3.zero; //right +2 (bottom, back, right)
 
-	private Color color;
-	private Color PreviousColor;
-	private Color TargetColor;
 
-//	bool changeState = true;
-//	float smoothTime = 0.0f;
-//	float smoother = 0.1f;
-//
-//	[Range(0.001f, 0.05f)] public float transitionSpeed = 0.005f;
+	public Camera mainCamera;
+	private Ray ray;
+	private RaycastHit hit;
+	private GameObject hitObject = null;
+
+	List <GameObject> mySphere = new List<GameObject>();
+
+	public GameObject sphere;
+
+	private int currentSphereIndex = 0;
 
 	private Vector3[] vertices;
 
-	void Start ()
+	void Awake ()
 	{
+
 		this.name = "mesh object";
-		//CreateCube ();	
+		createVerticesPoints();
+		vertexPoints ();
 
+		//StartCoroutine (vertexPoints ());
+
+		CreateCube ();	
 	}
+		
 
-	private void OnDrawGizmos () {
 
-		if (vertices == null) {
-			return;
-		}
+//	private void OnDrawGizmos () {
+//		
+//		if (vertices == null) {
+//			return;
+//		}
+//		Gizmos.color = Color.yellow;
+//
+//		for (int i = 0; i < vertices.Length; i++) {
+//			Gizmos.DrawSphere(vertices[i] + this.transform.position, 0.1f);
+//		}
+//
+//	}
 
-		Gizmos.color = Color.yellow;
+	private void vertexPoints () {
+	//private IEnumerator Generate () {
+
+		//yield return wait;
+
+
 		for (int i = 0; i < vertices.Length; i++) {
-			Gizmos.DrawSphere(vertices[i] + this.transform.position, 0.1f);
+
+			Vector3 verticesPositions = new Vector3(vertices [i].x, vertices [i].y + this.transform.position.y, vertices [i].z);
+			GameObject a = (GameObject) Instantiate(sphere, verticesPositions, Quaternion.identity);
+			a.transform.localScale = new Vector3 (0.4f, 0.4f, 0.4f);
+			a.GetComponent<Renderer> ().material.MaterialColorToRandom();
+			a.transform.parent = this.transform;
+			mySphere.Add (a);
+
+
+			//yield return wait;
+		}
+		Debug.Log ("  vert: "+vertices.Length +"   sphere: "+ mySphere.Count);
+
+		//yield return wait;
+
+		for (int a = 0; a < mySphere.Count; a++) {
+
+			Debug.Log ("index: " + a + "   position: " + mySphere[a].transform.position);
 		}
 
 	}
+
 
 	void Update()
 	{
-//		if (!stop){
-//			smoothTime += transitionSpeed;	
-//		}
-//
-//
-//		if (smoothTime > 10) {
-//
-//			smoothTime = 0;
-//			changeState = false;
-//		}
-//
-//		if (changeState == false)
-//		{
-//			transitionSpeed =  Random.Range (0.01f, 0.05f);
-//
-//			if (!resetToCube) {
-//				
-//				topTargetX = Random.Range (-5.0f, 5.0f);
-//				topTargetY = Random.Range (1.0f, 5.0f);
-//				topTargetZ = Random.Range (-5.0f, 5.0f);
-//				midTargetX = Random.Range (-5.0f, 5.0f);
-//				midTargetY = Random.Range (0.0f, 4.0f);
-//				midTargetZ = Random.Range (-5.0f, 5.0f);
-//
-//				bottomTargetX = Random.Range (-5.0f, 5.0f);
-//				bottomTargetY = 1.0f;
-//				bottomTargetZ = Random.Range (-5.0f, 5.0f);
-//				TargetColor = new Color( Random.value, Random.value, Random.value, 1.0f);
-//
-//			} else {
-//
-//				topTargetX = 1.0f;
-//				topTargetY = 1.0f;
-//				topTargetZ = 1.0f;
-//				midTargetX = 1.0f;
-//				midTargetY = 0.0f;
-//				midTargetZ = 1.0f;
-//				bottomTargetX = 1.0f;
-//				bottomTargetY = 1.0f;
-//				bottomTargetZ = 1.0f;
-//
-//
-//				TargetColor = Color.black;
-//			}
-//			topPreTargetX = toplengthX;
-//			topPreTargetY = toplengthY;
-//			topPreTargetZ = toplengthZ;
-//			midPreTargetX = midlengthX;
-//			midPreTargetY = midlengthY;
-//			midPreTargetZ = midlengthZ;
-//			bottomPreTargetX = bottomlengthX;
-//			bottomPreTargetY = bottomlengthY;
-//			bottomPreTargetZ = bottomlengthZ;
-//			PreviousColor = color;
-//
-//			changeState = true;
-//		}
-//
-//		toplengthX = Mathf.Lerp (topPreTargetX, topTargetX, smoother * smoothTime);			
-//		toplengthY = Mathf.Lerp (topPreTargetY, topTargetY+midTargetY, smoother * smoothTime);	
-//		toplengthZ = Mathf.Lerp (topPreTargetZ, topTargetZ, smoother * smoothTime);
-//
-//		midlengthX = Mathf.Lerp (midPreTargetX, midTargetX, smoother * smoothTime);			
-//		midlengthY = Mathf.Lerp (midPreTargetY, midTargetY, smoother * smoothTime);
-//		midlengthZ = Mathf.Lerp (midPreTargetZ, midTargetZ, smoother * smoothTime);
-//
-//		bottomlengthX = Mathf.Lerp (bottomPreTargetX, bottomTargetX, smoother * smoothTime);			
-//		bottomlengthY = Mathf.Lerp (bottomPreTargetY, bottomTargetY, smoother * smoothTime);
-//		bottomlengthZ = Mathf.Lerp (bottomPreTargetZ, bottomTargetZ, smoother * smoothTime);
-//		color = Color.Lerp(PreviousColor, TargetColor, smoother * smoothTime);
-//
+
+		//cube details
+		v0 = mySphere[0].transform.position; //left (top, front, left)
+		v1 = mySphere[1].transform.position;  //right (top, front, right)
+		v2 = mySphere[2].transform.position;  //right (top, back, right)
+		v3 = mySphere[3].transform.position;  //left (top, back, left)
+
+		v4 = mySphere[4].transform.position;  //left (mid, front, left)
+		v5 = mySphere[5].transform.position;  //right (mid, front, right)
+		v6 = mySphere[6].transform.position;  //right (mid, back, right)
+		v7 = mySphere[7].transform.position;  //left (mid, back, left)
+
+		v8 = mySphere[8].transform.position; ; //left (bottom, front, left)
+		v9 = mySphere[9].transform.position;  //right (bottom, front, right)
+		v10 = mySphere[10].transform.position;  //right (bottom, back, right)
+		v11 = mySphere[11].transform.position;  //left (bottom, back, left)
+
+		v12 = mySphere[11].transform.position; //right +2 (top, front, right)
+		v13 = mySphere[11].transform.position; //right +2 (top, back, right)
+		v14 = mySphere[11].transform.position; //right +2 (mid, front, right)
+		v15 = mySphere[11].transform.position; //right +2 (mid, back, right)
+		v16 = mySphere[11].transform.position; //right +2 (bottom, front, right)
+		v17 = mySphere[11].transform.position; //right +2 (bottom, back, right)
+
+
 		CreateCube ();
-//
-//		//Debug.Log ("smoothtime:  "+smoothTime);
-//
+
+
+		if (Input.GetMouseButtonDown (0)) {
+
+			ray = mainCamera.ScreenPointToRay (Input.mousePosition);
+
+			if (Physics.Raycast (ray, out hit)) {
+
+				Debug.Log (vertices [0]);
+
+				vertices [0] = new Vector3 (7, 9, 4);
+
+				Debug.Log (vertices [0]);
+				for (int i = 0; i < mySphere.Count; i++) {
+
+					if (hit.collider.gameObject == mySphere [i]) {
+						hitObject = hit.collider.gameObject;
+
+						hitObject.GetComponent<Renderer> ().material.color = new Color (Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f));
+
+						//currentSphereIndex = mySphere.IndexOf(hit.collider.gameObject);
+						//vertices [i] = mySphere [i].transform.position;
+						//Debug.Log ("index: "+ currentSphereIndex +"   position: "+hitObject.transform.position);
+
+					}
+				}
+
+//				if (hit.collider.gameObject.name == "building") {
+//					
+//				
+//				}
+				//hitObject = hit.collider.gameObject;
+				//Debug.Log (hit.collider.name);
+
+			}
+		}
+
+
+
 	}
-//
+
+	private void createVerticesPoints(){
+
+		//cube vertices details
+		v0 = new Vector3 (-toplengthX, toplengthY, toplengthZ); //left (top, front, left)
+		v1 = new Vector3 (toplengthX, toplengthY, toplengthZ); //right (top, front, right)
+		v2 = new Vector3 (toplengthX , toplengthY, -toplengthZ); //right (top, back, right)
+		v3 = new Vector3 (-toplengthX , toplengthY, -toplengthZ); //left (top, back, left)
+
+		v4 = new Vector3 (-midlengthX, midlengthY, midlengthZ ); //left (mid, front, left)
+		v5 = new Vector3 (midlengthX, midlengthY, midlengthZ ); //right (mid, front, right)
+		v6 = new Vector3 (midlengthX , midlengthY, -midlengthZ); //right (mid, back, right)
+		v7 = new Vector3 (-midlengthX , midlengthY , -midlengthZ); //left (mid, back, left)
+
+		v8 = new Vector3 (-bottomlengthX, -bottomlengthY, bottomlengthZ ); //left (bottom, front, left)
+		v9 = new Vector3 (bottomlengthX, -bottomlengthY, bottomlengthZ ); //right (bottom, front, right)
+		v10 = new Vector3 (bottomlengthX , -bottomlengthY, -bottomlengthZ); //right (bottom, back, right)
+		v11 = new Vector3 (-bottomlengthX , -bottomlengthY , -bottomlengthZ); //left (bottom, back, left)
+
+		//		v12 = new Vector3 (toplengthX * 2.5f, toplengthY, toplengthZ); //right +2 (top, front, right)
+		//		v13 = new Vector3 (toplengthX * 2.5f, toplengthY, -toplengthZ); //right +2 (top, back, right)
+		//		v14 = new Vector3 (midlengthX * 2.5f, midlengthY, midlengthZ ); //right +2 (mid, front, right)
+		//		v15 = new Vector3 (midlengthX * 2.5f, midlengthY, -midlengthZ); //right +2 (mid, back, right)
+		//		v16 = new Vector3 (bottomlengthX * 2.5f, -bottomlengthY, bottomlengthZ ); //right +2 (bottom, front, right)
+		//		v17 = new Vector3 (bottomlengthX * 2.5f, -bottomlengthY, -bottomlengthZ); //right +2 (bottom, back, right)
+		//
+		vertices = new Vector3[] {v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11};
+
+		//vertices = new Vector3[] {v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17};
+
+	}
+
 	private void CreateCube()
 	{
 
@@ -185,27 +231,10 @@ public class MeshObject : MonoBehaviour {
 		}
 
 		mesh.Clear();
-		
-		//cube details
-		v0 = new Vector3 (-toplengthX, toplengthY, toplengthZ); //left (top, front, left)
-		v1 = new Vector3 (toplengthX, toplengthY, toplengthZ); //right (top, front, right)
-		v2 = new Vector3 (toplengthX , toplengthY, -toplengthZ); //right (top, back, right)
-		v3 = new Vector3 (-toplengthX , toplengthY, -toplengthZ); //left (top, back, left)
-
-		v4 = new Vector3 (-midlengthX, midlengthY, midlengthZ ); //left (mid, front, left)
-		v5 = new Vector3 (midlengthX, midlengthY, midlengthZ ); //right (mid, front, right)
-		v6 = new Vector3 (midlengthX , midlengthY, -midlengthZ); //right (mid, back, right)
-		v7 = new Vector3 (-midlengthX , midlengthY , -midlengthZ); //left (mid, back, left)
-
-		v8 = new Vector3 (-bottomlengthX, -bottomlengthY, bottomlengthZ ); //left (bottom, front, left)
-		v9 = new Vector3 (bottomlengthX, -bottomlengthY, bottomlengthZ ); //right (bottom, front, right)
-		v10 = new Vector3 (bottomlengthX , -bottomlengthY, -bottomlengthZ); //right (bottom, back, right)
-		v11 = new Vector3 (-bottomlengthX , -bottomlengthY , -bottomlengthZ); //left (bottom, back, left)
 
 
 		//Add region Vertices
-		vertices = new Vector3[]{
-		//mesh.vertices = new Vector3[]{
+		mesh.vertices = new Vector3[]{
 
 
 			// top Front face 
@@ -249,8 +278,7 @@ public class MeshObject : MonoBehaviour {
 
 		};
 		//end vertices region
-		mesh.vertices = vertices;
-			
+
 		//Add Triangles region 
 		//these are three point, and work clockwise to determine what side is visible
 		mesh.triangles = new int[]{
@@ -407,8 +435,12 @@ public class MeshObject : MonoBehaviour {
 		mesh.Optimize();
 
 
-		MeshRenderer renderer = GetComponent<MeshRenderer> ();
-		renderer.material.color = color;
+		GetComponent<MeshRenderer> ().material.color = Color.blue;
+		//GetComponent<MeshRenderer> ().material.MaterialColorToRandom ();
+		//MeshRenderer meshRenderer = GetComponent<MeshRenderer> ();
+//		Material material = new Material (Shader.Find ("Standard"));
+//		material.MaterialColorToRandom ();
+//		meshRenderer.material = material;
 	}
 
 
