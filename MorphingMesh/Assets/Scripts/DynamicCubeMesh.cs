@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-[RequireComponent(typeof(BoxCollider))]
 
 
 public class DynamicCubeMesh : MonoBehaviour {
@@ -14,14 +13,27 @@ public class DynamicCubeMesh : MonoBehaviour {
 	private RaycastHit hit;
 	private GameObject hitObject = null;
 
-	List <GameObject> mySpheres = new List<GameObject>();
-
 	public GameObject sphere;
-	private int sphereCurrentIndex = 0;
+	private int currentSphereIndex = 0;
+	List <GameObject> newSpheres = new List<GameObject>();
 
-	public int xSize = 3;
-	public int ySize = 2;
-	public int zSize = 4;
+	int xlength = 0;
+	int ylength = 0;
+	int zlength = 0;
+
+	public int xSize = 9;
+	public int ySize = 4;
+	public int zSize = 2;
+	private int zExtra = 0;
+
+	private int offset = 0;
+	private int midY = 0;
+
+	private Vector3 topPoint = new Vector3 ();
+	private List<int[]> controlPoints = new List<int[]>();
+	private List<int> listOfIndexes = new List<int>();
+	private List <Vector3> sideControlPoints = new List<Vector3> ();
+	private List<int> topControlPointIndexes = new List<int>();
 
 	private BoxCollider meshCollider; 
 	private MeshFilter meshFilter;
@@ -44,28 +56,108 @@ public class DynamicCubeMesh : MonoBehaviour {
 		return i + 6;
 	}
 
+
+
+//	private void OnDrawGizmos () {
+//		
+//		if (vertices == null) {
+//			return;
+//		}
+//		Gizmos.color = Color.yellow;
+//
+//		for (int i = 0; i < vertices.Length; i++) {
+//			Gizmos.DrawSphere(vertices[i] + this.transform.position, 0.1f);
+//		}
+//
+//	}
+
+
 	void Awake ()
 	{
 		this.name = "dynamic object";
+		CreateControllPointsIndexes ();
+		MeshAndIndexes ();
+		CreateSpheresInControlPoints ();
 
-		vertexPoints ();
+
+	}
+	private GameObject createSphere(Vector3 pos , List <GameObject> objectArr){
+
+		GameObject a = (GameObject) Instantiate(sphere, pos, Quaternion.identity);
+		a.transform.localScale = new Vector3 (0.4f, 0.4f, 0.4f);
+		a.GetComponent<Renderer> ().material.MaterialColorToRandom();
+		a.transform.parent = this.transform;
+		objectArr.Add (a);
+
+		return a;
 	}
 
 
-	//	private void OnDrawGizmos () {
-	//		
-	//		if (vertices == null) {
-	//			return;
-	//		}
-	//		Gizmos.color = Color.yellow;
-	//
-	//		for (int i = 0; i < vertices.Length; i++) {
-	//			Gizmos.DrawSphere(vertices[i] + this.transform.position, 0.1f);
-	//		}
-	//
-	//	}
+	private void CreateControllPointsIndexes ()
+	{
+		xlength = xSize + 1;
+		ylength = ySize + 1;
+		zlength = zSize + 1;
 
-	private void vertexPoints () {
+		zExtra = zSize - 2;
+		offset = ((xlength * 2 ) + (zSize - 1 + zExtra)) ;
+
+		print (" offset " + offset);
+
+		for (int x = 0; x < offset + 1; x++) {
+
+			for (int z = 0; z < zlength; z++)
+			{
+
+				List<int> innerArray = new List<int>();
+
+				for (int y = 0; y < ylength; y++)
+				{
+					int myPos = (((offset * y) + x) + y);
+					innerArray.Add (myPos);
+					//print(innerArray[y]);
+				}
+				controlPoints.Insert(x, innerArray.ToArray());
+			}
+
+//			for (int y = 0; y < ySize + 1; y++)
+//			{
+//				print(controlPoints[x][y]+"  "+ controlPoints.Count);
+//			}
+
+		}
+
+
+	}
+	private void CreateSpheresInControlPoints (){
+
+		midY = (int)(Mathf.Round (ySize / 2));
+
+		for (int s = 0; s < listOfIndexes.Count; s++) {
+
+			//print (listOfIndexes.ToArray());
+			for (int a = 0; a < offset + 1; a++) {
+
+				if (  listOfIndexes[s].Equals(controlPoints [a] [midY])   ) {
+
+					createSphere (sideControlPoints [listOfIndexes [s]], newSpheres);
+
+					//print (listOfIndexes[s]+"   "+newSpheres.Count);
+				} 
+
+			}
+
+		}
+
+
+		////create top sphere
+		topPoint = new Vector3(xlength/2,ySize,zlength/2);
+		createSphere (topPoint, newSpheres);
+
+
+
+	}
+	private void MeshAndIndexes () {
 		
 		CreateMesh ();
 		CreateVertices();
@@ -73,22 +165,25 @@ public class DynamicCubeMesh : MonoBehaviour {
 		CreateColliders();
 		AddToMesh ();
 
+
+		int p = 0;
 		for (int i = 0; i < vertices.Length; i++) {
 
-			Vector3 verticesPositions = new Vector3(vertices [i].x, vertices [i].y + this.transform.position.y, vertices [i].z);
-			GameObject a = (GameObject) Instantiate(sphere, verticesPositions, Quaternion.identity);
-			a.transform.localScale = new Vector3 (0.4f, 0.4f, 0.4f);
-			a.GetComponent<Renderer> ().material.MaterialColorToRandom();
-			a.transform.parent = this.transform;
-			mySpheres.Add (a);
+			sideControlPoints.Add(new Vector3(vertices [i].x, vertices [i].y + this.transform.position.y, vertices [i].z));
 
+			listOfIndexes.Add (p);
+			p++;
+
+			//createSphere (sideControlPoints[i], newSpheres);
+
+			//top vertices
+			if (vertices [i].y == ySize || vertices [i].y == ySize - 1 ) {
+
+				topControlPointIndexes.Add (i);
+			}
 		}
-		Debug.Log ("  vertices length: "+vertices.Length +"   sphere objects length: "+ mySpheres.Count);
+		Debug.Log ("  vertices length: "+vertices.Length +"   list of indexes length: "+ listOfIndexes.Count+"  v points: "+sideControlPoints.Count);
 
-		for (int a = 0; a < mySpheres.Count; a++) {
-
-			Debug.Log ("index: " + a + "  position: " + mySpheres[a].transform.position);
-		}
 
 	}
 
@@ -109,7 +204,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 		mesh.name = "dynamic mesh";
 		mesh.Clear();
 	}
-
+		
 	private void CreateVertices() {
 
 
@@ -124,24 +219,29 @@ public class DynamicCubeMesh : MonoBehaviour {
 		normals = new Vector3[vertices.Length];
 		cubeUV = new Color32[vertices.Length];
 
+
 		int v = 0;
 
 		// sides
 		for (int y = 0; y <= ySize; y++) {
 			for (int x = 0; x <= xSize; x++) {
 				vertices[v++] = new Vector3(x, y, 0);
+
 				//yield return wait;
 			}
 			for (int z = 1; z <= zSize; z++) {
 				vertices[v++] = new Vector3(xSize, y, z);
+
 				//yield return wait;
 			}
 			for (int x = xSize - 1; x >= 0; x--) {
 				vertices[v++] = new Vector3(x, y, zSize);
+
 				//yield return wait;
 			}
 			for (int z = zSize - 1; z > 0; z--) {
 				vertices[v++] = new Vector3(0, y, z);
+
 				//yield return wait;
 			}
 		}
@@ -150,12 +250,14 @@ public class DynamicCubeMesh : MonoBehaviour {
 		for (int z = 1; z < zSize; z++) {
 			for (int x = 1; x < xSize; x++) {
 				vertices[v++] = new Vector3(x, ySize, z);
+
 				//yield return wait;
 			}
 		}
 		for (int z = 1; z < zSize; z++) {
 			for (int x = 1; x < xSize; x++) {
 				vertices[v++] = new Vector3(x, 0, z);
+
 				//yield return wait;
 			}
 		}
@@ -194,6 +296,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 //	}
 
 	private void CreateTriangles () {
+		
 		int quads = (xSize * ySize + xSize * zSize + ySize * zSize) * 2;
 		triangles = new int[quads * 6];
 		int ring = (xSize + zSize) * 2;
@@ -294,23 +397,67 @@ public class DynamicCubeMesh : MonoBehaviour {
 		mesh.Optimize();
 
 
-		GetComponent<MeshRenderer> ().material.color = Color.blue;
+		GetComponent<MeshRenderer> ().material.color = Color.red;
 	}
 
-	private void UpdateVertices() {
+	private void UpdateVerticesAndPositions() {
 
-		for (int i = 0; i < vertices.Length; i++) {
+		//// type 1
+//		for(int i = 0; i < vertices.Length; i++)
+//		{
+//			vertices [i] = newSpheres [i].transform.localPosition;
+//		}
+//
 
-			vertices [i] = mySpheres [i].transform.localPosition; //+ this.transform.position;
+
+		//// type 2
+		//for(int x = 0; x < xlength; x++)
+		for (int x = 0; x < newSpheres.Count-1; x++) 
+		{
+			for (int z = 0; z < controlPoints [x].Length; z++)
+			{
+				vertices [controlPoints [x] [z]] = new Vector3(
+				 	newSpheres [x].transform.localPosition.x, 
+					vertices [controlPoints [x] [z]].y, 
+					newSpheres [x].transform.localPosition.z);
+			}
+
+			//clamp y on side spheres
+			newSpheres [x].transform.localPosition = new Vector3(
+				 newSpheres [x].transform.localPosition.x,
+				 Mathf.Clamp (newSpheres [x].transform.localPosition.y, midY, midY),
+				 newSpheres [x].transform.localPosition.z);
+
 		}
+
+		for (int y = 0; y < topControlPointIndexes.Count; y++) {
+			
+			// do pointy top
+			//vertices [topControlPointIndexes[y]] = newSpheres [newSpheres.Count-1].transform.localPosition ;
+
+			//do normal top
+			vertices [topControlPointIndexes[y]] = new Vector3(
+				vertices [topControlPointIndexes[y]].x,
+				newSpheres [newSpheres.Count-1].transform.localPosition.y,
+				vertices [topControlPointIndexes[y]].z);
+		}
+		//clamp x and z on topsphere
+		newSpheres [newSpheres.Count-1].transform.localPosition = new Vector3(
+			 Mathf.Clamp (newSpheres [newSpheres.Count-1].transform.localPosition.x, topPoint.x, topPoint.x),
+		 	newSpheres [newSpheres.Count-1].transform.localPosition.y, 
+			 Mathf.Clamp (newSpheres [newSpheres.Count-1].transform.localPosition.z, topPoint.z, topPoint.z));
+	
+
 
 	}
 
 	private void CreateColliders () {
 
-		meshCollider = GetComponent<BoxCollider>();
+		Destroy(meshCollider);
+		meshCollider = gameObject.AddComponent<BoxCollider>();
+		//meshCollider = GetComponent<BoxCollider>();
 		meshCollider.size = new Vector3(xSize, ySize, zSize);
-		meshCollider.center = new Vector3 (xSize/2, ySize/2, zSize/2);
+		meshCollider.center = new Vector3 ((float)xSize/2, (float)ySize/2, (float)zSize/2);
 
 	}
 		
@@ -318,10 +465,12 @@ public class DynamicCubeMesh : MonoBehaviour {
 	{
 
 		CreateMesh ();
-		UpdateVertices ();
+		UpdateVerticesAndPositions ();
 		CreateTriangles();
 		AddToMesh();
 		CreateColliders();
+
+
 
 		if (Input.GetMouseButtonDown (0)) {
 
@@ -330,17 +479,20 @@ public class DynamicCubeMesh : MonoBehaviour {
 			if (Physics.Raycast (ray, out hit)) {
 
 
-				for (int i = 0; i < mySpheres.Count; i++) {
+				for (int i = 0; i < newSpheres.Count; i++) {
 
-					if (hit.collider.gameObject == mySpheres [i]) {
+					if (hit.collider.gameObject == newSpheres [i]) {
 						hitObject = hit.collider.gameObject;
 
 						//hitObject.GetComponent<Renderer> ().material.color = new Color (Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f));
 
-						sphereCurrentIndex = mySpheres.IndexOf(hit.collider.gameObject);
-						//vertices [i] = mySphere [i].transform.position;
-						//Debug.Log ("index: "+ currentSphereIndex +"   position: "+hitObject.transform.position);
-						Debug.Log ("index: "+sphereCurrentIndex+"   world pos: "+ mySpheres [i].transform.position +"   local pos: "+mySpheres [i].transform.localPosition+"  current vertexpoint: "+vertices[i]);
+						//currentSphereIndex = mySpheres.IndexOf(hit.collider.gameObject);
+						currentSphereIndex = i;
+
+
+						Debug.Log ("index: "+currentSphereIndex+"   world pos: "+ newSpheres [i].transform.position +"   local pos: "+newSpheres [i].transform.localPosition+"  current vertexpoint: "+vertices[i]);
+
+
 
 					}
 				}
