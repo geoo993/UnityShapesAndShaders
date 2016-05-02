@@ -15,11 +15,12 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 	public GameObject sphere;
 	private int currentSphereIndex = 0;
-	List <GameObject> newSpheres = new List<GameObject>();
+	private List <GameObject> newSpheres = new List<GameObject>();
 
-	int xlength = 0;
-	int ylength = 0;
-	int zlength = 0;
+	public bool poityOrNot = false;
+	private int xlength = 0;
+	private int ylength = 0;
+	private int zlength = 0;
 
 	public int xSize = 9;
 	public int ySize = 4;
@@ -32,7 +33,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 	private Vector3 topPoint = new Vector3 ();
 	private List<int[]> controlPoints = new List<int[]>();
 	private List<int> listOfIndexes = new List<int>();
-	private List <Vector3> sideControlPoints = new List<Vector3> ();
+	private List <Vector3> verticesCopy = new List<Vector3> ();
 	private List<int> topControlPointIndexes = new List<int>();
 
 	private BoxCollider meshCollider; 
@@ -57,6 +58,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 	}
 
 
+	public Texture2D[] rgbTextures;
 
 //	private void OnDrawGizmos () {
 //		
@@ -140,7 +142,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 				if (  listOfIndexes[s].Equals(controlPoints [a] [midY])   ) {
 
-					createSphere (sideControlPoints [listOfIndexes [s]], newSpheres);
+					createSphere (verticesCopy [listOfIndexes [s]], newSpheres);
 
 					//print (listOfIndexes[s]+"   "+newSpheres.Count);
 				} 
@@ -169,7 +171,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 		int p = 0;
 		for (int i = 0; i < vertices.Length; i++) {
 
-			sideControlPoints.Add(new Vector3(vertices [i].x, vertices [i].y + this.transform.position.y, vertices [i].z));
+			verticesCopy.Add(new Vector3(vertices [i].x + this.transform.position.x, vertices [i].y + this.transform.position.y, vertices [i].z + this.transform.position.z));
 
 			listOfIndexes.Add (p);
 			p++;
@@ -177,12 +179,12 @@ public class DynamicCubeMesh : MonoBehaviour {
 			//createSphere (sideControlPoints[i], newSpheres);
 
 			//top vertices
-			if (vertices [i].y == ySize || vertices [i].y == ySize - 1 ) {
-
+			//if (vertices [i].y == ySize || vertices [i].y == ySize - 1 ) {
+			if (vertices [i].y == ySize ) {
 				topControlPointIndexes.Add (i);
 			}
 		}
-		Debug.Log ("  vertices length: "+vertices.Length +"   list of indexes length: "+ listOfIndexes.Count+"  v points: "+sideControlPoints.Count);
+		Debug.Log ("  vertices length: "+vertices.Length +"   list of indexes length: "+ listOfIndexes.Count+"  v points: "+verticesCopy.Count);
 
 
 	}
@@ -397,7 +399,48 @@ public class DynamicCubeMesh : MonoBehaviour {
 		mesh.Optimize();
 
 
-		GetComponent<MeshRenderer> ().material.color = Color.red;
+		Renderer meshRenderer = GetComponent<MeshRenderer>();
+		Material material = new Material (Shader.Find ("Standard"));
+		//Material material = Resources.Load("MaterialY") as Material;
+		//GetComponent<MeshRenderer> ().material.color = Color.red;
+
+		//material.color = ExtensionMethods.RandomColor();
+		//material.color = Color.Lerp(Color.white, cc, Random.Range(0.0f, 1.0f));
+
+//		Texture texture1 = Resources.Load ("TextureComplete1") as Texture;
+//		Texture texture2 = Resources.Load ("TextureComplete2") as Texture;
+//		Texture texture3 = Resources.Load ("TextureComplete3") as Texture;
+//		Texture texture4 = Resources.Load ("TextureComplete4") as Texture;
+//
+//		Texture[] texture = new Texture[] {
+//			texture1,texture2,texture3,texture4
+//		};
+//		material.mainTexture = texture[ 1 ];
+
+
+
+
+
+		Material[] windowMaterials = new Material[rgbTextures.Length];
+		for(int i = 0; i < rgbTextures.Length; i++) {
+
+			Material m = new Material(Shader.Find("Self-Illumin/Diffuse"));
+
+			m.SetTexture("_MainTex", rgbTextures[i]);
+
+			//Texture2D rit = randomIllumTex(rgbTextures[i].width, rgbTextures[i].height);	
+			//m.SetTexture("_BumpMap", rit);
+
+			m.SetTextureScale("_MainTex", new Vector2(64,64));
+			//m.SetTextureScale("_BumpMap", new Vector2(1,1));
+
+			windowMaterials[i] = m;
+		}
+
+		int tx = (int)Mathf.Floor(Random.value * rgbTextures.Length);
+		//GetComponent<Renderer>().material = windowMaterials[tx];
+
+		meshRenderer.material = windowMaterials[0];
 	}
 
 	private void UpdateVerticesAndPositions() {
@@ -431,15 +474,17 @@ public class DynamicCubeMesh : MonoBehaviour {
 		}
 
 		for (int y = 0; y < topControlPointIndexes.Count; y++) {
-			
-			// do pointy top
-			//vertices [topControlPointIndexes[y]] = newSpheres [newSpheres.Count-1].transform.localPosition ;
 
-			//do normal top
-			vertices [topControlPointIndexes[y]] = new Vector3(
-				vertices [topControlPointIndexes[y]].x,
+			if (poityOrNot){
+				// do pointy top
+				vertices [topControlPointIndexes[y]] = newSpheres [newSpheres.Count-1].transform.localPosition ;
+			} else{
+				//do normal top
+				vertices [topControlPointIndexes[y]] = new Vector3(
+					verticesCopy [topControlPointIndexes[y]].x,
 				newSpheres [newSpheres.Count-1].transform.localPosition.y,
-				vertices [topControlPointIndexes[y]].z);
+					verticesCopy [topControlPointIndexes[y]].z);
+			}
 		}
 		//clamp x and z on topsphere
 		newSpheres [newSpheres.Count-1].transform.localPosition = new Vector3(

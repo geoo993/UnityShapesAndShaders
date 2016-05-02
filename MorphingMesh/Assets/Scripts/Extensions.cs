@@ -17,8 +17,8 @@ public static class ExtensionMethods
 		trans.localScale = new Vector3(1, 1, 1);
 	}
 
-	public static Color RandomColor( this Color color) {
-		return color = new Color (Random.value, Random.value, Random.value, 1.0f);
+	public static Color RandomColor() {
+		return new Color (Random.value, Random.value, Random.value, 1.0f);
 	}
 
 	public static void MaterialColorToRandom( this Material MaterialToChange)
