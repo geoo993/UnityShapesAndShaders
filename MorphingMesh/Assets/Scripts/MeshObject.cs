@@ -117,27 +117,27 @@ public class MeshObject : MonoBehaviour {
 	{
 
 		//cube details
-		v0 = mySphere[0].transform.position; //left (top, front, left)
-		v1 = mySphere[1].transform.position;  //right (top, front, right)
-		v2 = mySphere[2].transform.position;  //right (top, back, right)
-		v3 = mySphere[3].transform.position;  //left (top, back, left)
+		v0 = mySphere[0].transform.localPosition; //left (top, front, left)
+		v1 = mySphere[1].transform.localPosition;  //right (top, front, right)
+		v2 = mySphere[2].transform.localPosition;  //right (top, back, right)
+		v3 = mySphere[3].transform.localPosition;  //left (top, back, left)
 
-		v4 = mySphere[4].transform.position;  //left (mid, front, left)
-		v5 = mySphere[5].transform.position;  //right (mid, front, right)
-		v6 = mySphere[6].transform.position;  //right (mid, back, right)
-		v7 = mySphere[7].transform.position;  //left (mid, back, left)
+		v4 = mySphere[4].transform.localPosition;  //left (mid, front, left)
+		v5 = mySphere[5].transform.localPosition;  //right (mid, front, right)
+		v6 = mySphere[6].transform.localPosition;  //right (mid, back, right)
+		v7 = mySphere[7].transform.localPosition;  //left (mid, back, left)
 
-		v8 = mySphere[8].transform.position; ; //left (bottom, front, left)
-		v9 = mySphere[9].transform.position;  //right (bottom, front, right)
-		v10 = mySphere[10].transform.position;  //right (bottom, back, right)
-		v11 = mySphere[11].transform.position;  //left (bottom, back, left)
+		v8 = mySphere[8].transform.localPosition; ; //left (bottom, front, left)
+		v9 = mySphere[9].transform.localPosition;  //right (bottom, front, right)
+		v10 = mySphere[10].transform.localPosition;  //right (bottom, back, right)
+		v11 = mySphere[11].transform.localPosition;  //left (bottom, back, left)
 
-		v12 = mySphere[11].transform.position; //right +2 (top, front, right)
-		v13 = mySphere[11].transform.position; //right +2 (top, back, right)
-		v14 = mySphere[11].transform.position; //right +2 (mid, front, right)
-		v15 = mySphere[11].transform.position; //right +2 (mid, back, right)
-		v16 = mySphere[11].transform.position; //right +2 (bottom, front, right)
-		v17 = mySphere[11].transform.position; //right +2 (bottom, back, right)
+		v12 = mySphere[11].transform.localPosition; //right +2 (top, front, right)
+		v13 = mySphere[11].transform.localPosition; //right +2 (top, back, right)
+		v14 = mySphere[11].transform.localPosition; //right +2 (mid, front, right)
+		v15 = mySphere[11].transform.localPosition; //right +2 (mid, back, right)
+		v16 = mySphere[11].transform.localPosition; //right +2 (bottom, front, right)
+		v17 = mySphere[11].transform.localPosition; //right +2 (bottom, back, right)
 
 
 		CreateCube ();
