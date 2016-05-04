@@ -17,7 +17,6 @@ public class DynamicCubeMesh : MonoBehaviour {
 	private int currentSphereIndex = 0;
 	private List <GameObject> newSpheres = new List<GameObject>();
 
-	public bool poityOrNot = false;
 	private int xlength = 0;
 	private int ylength = 0;
 	private int zlength = 0;
@@ -26,7 +25,10 @@ public class DynamicCubeMesh : MonoBehaviour {
 	private int ySize = 40;
 	public int zSize = 2;
 	public int roundness = 0;
-	private int zExtra = 0;
+	public bool roundTop = false;
+	public bool roundFront = false;
+	public bool roundBack = false;
+	public bool roundSides = false;
 
 	private int offset = 0;
 	private int midY = 0;
@@ -55,6 +57,14 @@ public class DynamicCubeMesh : MonoBehaviour {
 		triangles[i + 5] = v11;
 		return i + 6;
 	}
+
+
+	public enum verticesControlPrefs { sidesVertices, allVertices };
+	public verticesControlPrefs controlType = verticesControlPrefs.allVertices;
+
+	public enum PositioningPrefs { front, back, top, allSides };
+	public PositioningPrefs verticesPrefs = PositioningPrefs.allSides;
+	public bool roof = false;
 
 
 	void Awake ()
@@ -86,7 +96,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 		ylength = ySize + 1;
 		zlength = zSize + 1;
 
-		zExtra = zSize - 2;
+		int zExtra = zSize - 2;
 		offset = ((xlength * 2 ) + (zSize - 1 + zExtra)) ;
 
 		print (" offset " + offset);
@@ -107,10 +117,6 @@ public class DynamicCubeMesh : MonoBehaviour {
 				controlPoints.Insert(x, innerArray.ToArray());
 			}
 
-//			for (int y = 0; y < ySize + 1; y++)
-//			{
-//				print(controlPoints[x][y]+"  "+ controlPoints.Count);
-//			}
 
 		}
 
@@ -127,8 +133,10 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 				if (  listOfIndexes[s].Equals(controlPoints [a] [midY])   ) {
 
-					createSphere (verticesCopy [listOfIndexes [s]], newSpheres);
-
+					if (controlType == verticesControlPrefs.sidesVertices)
+					{
+						createSphere (verticesCopy [listOfIndexes [s]], newSpheres);
+					}
 					//print (listOfIndexes[s]+"   "+newSpheres.Count);
 				} 
 
@@ -140,7 +148,6 @@ public class DynamicCubeMesh : MonoBehaviour {
 		////create top sphere
 		topPoint = new Vector3((float)xSize/2,ySize,(float)zSize/2);
 		createSphere (topPoint, newSpheres);
-
 
 
 	}
@@ -162,7 +169,10 @@ public class DynamicCubeMesh : MonoBehaviour {
 			listOfIndexes.Add (p);
 			p++;
 
-			//createSphere (vertexPos, newSpheres);
+			if (controlType == verticesControlPrefs.allVertices)
+			{
+				createSphere (vertexPos, newSpheres);
+			}
 
 			//top vertices
 			if (vertices [i].y == ySize ) {
@@ -247,10 +257,19 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 		////sides
 		if (x < roundness) {
-			inner.x = roundness;
+			if (roundSides) {
+				inner.x = roundness;
+			} else {
+				inner.x = 0;
+			}
 		}
 		else if (x > xSize - roundness) {
-			inner.x = xSize - roundness;
+
+			if (roundSides) {
+				inner.x = xSize - roundness;
+			} else {
+				inner.x = xSize; 
+			}
 		}
 
 		////top and bottom
@@ -260,17 +279,30 @@ public class DynamicCubeMesh : MonoBehaviour {
 		}
 		else if (y > ySize - roundness) {
 			// top rounder
-			inner.y = ySize - roundness;
+			//inner.y = 0;
+			if (roundTop) {
+				inner.y = ySize - roundness;
+			} else {
+				inner.y = ySize; 
+			}
 		}
 
-		////front and top
+		////front and back
 		if (z < roundness) {
-			//front rounder
-			inner.z = roundness;
+			// add or disable front rounder
+			if (roundFront) {
+				inner.z = roundness;
+			} else {
+				inner.z = 0;
+			}
 		}
 		else if (z > zSize - roundness) {
-			//back rounder
-			inner.z = zSize - roundness;
+			//add or disable back rounder
+			if (roundBack) {
+				inner.z = zSize - roundness;
+			} else {
+				inner.z = zSize;
+			}
 		}
 
 		normals[i] = (vertices[i] - inner).normalized;
@@ -393,7 +425,8 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 
 		//Material material = new Material (Shader.Find ("Standard"));
-		Material material = new Material(Shader.Find("Self-Illumin/Diffuse"));
+		//Material material = new Material(Shader.Find("Self-Illumin/Diffuse"));
+		Material material = new Material(Shader.Find("Self-Illumin/Bumped Diffuse"));
 		//material.color = ExtensionMethods.RandomColor();//Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 //		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 //
@@ -427,10 +460,13 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 		Texture2D rit = randomIllumTex(texture[tx].width, texture[tx].height);	
 		material.SetTexture("_MainTex", texture[tx]);
-		//material.SetTexture("_BumpMap", rit);
+		material.SetTexture("_BumpMap", rit);
 
-		//material.SetTextureScale("_MainTex", new Vector2(64,64));
-		//material.SetTextureScale("_BumpMap", new Vector2(1,1));
+		Vector2 windowsTexture = new Vector2 (16, 32);
+		Vector2 stripesTexture = new Vector2 (1, 1);
+
+		material.SetTextureScale ("_MainTex", stripesTexture); //windowsTexture);
+		material.SetTextureScale("_BumpMap", stripesTexture);
 
 		meshRenderer.material = material;
 
@@ -450,73 +486,111 @@ public class DynamicCubeMesh : MonoBehaviour {
 			}
 			randomIllum.SetPixels( cols, mip );
 		}
-		randomIllum.Apply(false);
+		randomIllum.Apply(true);
 		return randomIllum;
 	}
 
 
 	private void UpdateVerticesAndPositions() {
 
-//		//// type 1
-//		for(int i = 0; i < vertices.Length; i++)
-//		{
-//			vertices [i] = newSpheres [i].transform.localPosition;
-//		}
-//
+		////// type 1 - Control all vertices
+
+		if (controlType == verticesControlPrefs.allVertices) {
+			
+			for (int i = 0; i < vertices.Length; i++) {
+				vertices [i] = newSpheres [i].transform.localPosition;
+			}
+		}
 
 
-		//// type 2
-		//// front line
-		//for(int x = 0; x < xlength; x++)
+		////// type 2 - Control either the front, back, top or all side vertices
+		if (controlType == verticesControlPrefs.sidesVertices) {
+			
+			switch (verticesPrefs) {
 
-		//// back line
-		for (int x = xSize+zSize; x < newSpheres.Count-1; x++) 
+			case PositioningPrefs.allSides:
+			
+				////all sides control point
+				for (int x = 0; x < newSpheres.Count - 1; x++) {
+					for (int z = 0; z < controlPoints [x].Length; z++) {
+						vertices [controlPoints [x] [z]] = new Vector3 (
+							newSpheres [x].transform.localPosition.x, 
+							vertices [controlPoints [x] [z]].y, 
+							newSpheres [x].transform.localPosition.z);
 
-		////all sides 
-		//for (int x = 0; x < newSpheres.Count-1; x++) 
-		{
-			for (int z = 0; z < controlPoints [x].Length; z++)
+					}
+				}
+				break;
+			case PositioningPrefs.front: 
+
+				//// front line control point
+				for (int x = 0; x < xlength; x++) {
+				
+					for (int z = 0; z < controlPoints [x].Length; z++) {
+						vertices [controlPoints [x] [z]] = new Vector3 (
+							newSpheres [x].transform.localPosition.x, 
+							vertices [controlPoints [x] [z]].y, 
+							newSpheres [x].transform.localPosition.z);
+
+					}
+				}
+
+				break;
+			case PositioningPrefs.back: 
+			//// back line control points
+				for (int x = xSize + zSize; x < newSpheres.Count - 1; x++) {
+
+					for (int z = 0; z < controlPoints [x].Length; z++) {
+						vertices [controlPoints [x] [z]] = new Vector3 (
+							newSpheres [x].transform.localPosition.x, 
+							vertices [controlPoints [x] [z]].y, 
+							newSpheres [x].transform.localPosition.z);
+
+					}
+				}
+				break;
+			case PositioningPrefs.top: 
+
+				//// top control point
+				for (int y = 0; y < topControlPointIndexes.Count; y++) {
+
+					if (roof){
+						// do pointy top
+						vertices [topControlPointIndexes[y]] = newSpheres [newSpheres.Count-1].transform.localPosition ;
+					} else{
+						//do normal top
+						vertices [topControlPointIndexes[y]] = new Vector3(
+							verticesCopy [topControlPointIndexes[y]].x,
+							newSpheres [newSpheres.Count-1].transform.localPosition.y,
+							verticesCopy [topControlPointIndexes[y]].z);
+					}
+				}
+
+				break;
+			}
+
+			for (int i = 0; i < newSpheres.Count-1; i++) 
 			{
-				vertices [controlPoints [x] [z]] = new Vector3(
-				 	newSpheres [x].transform.localPosition.x, 
-					vertices [controlPoints [x] [z]].y, 
-					newSpheres [x].transform.localPosition.z);
+				//clamp y on side spheres
+				newSpheres [i].transform.localPosition = new Vector3 (
+					newSpheres [i].transform.localPosition.x,
+					Mathf.Clamp (newSpheres [i].transform.localPosition.y, midY, midY),
+					newSpheres [i].transform.localPosition.z);
 			
 			}
 
-			//clamp y on side spheres
-			newSpheres [x].transform.localPosition = new Vector3(
-				 newSpheres [x].transform.localPosition.x,
-				 Mathf.Clamp (newSpheres [x].transform.localPosition.y, midY, midY),
-				 newSpheres [x].transform.localPosition.z);
-
+			////clamp x and z on topsphere
+			newSpheres [newSpheres.Count-1].transform.localPosition = new Vector3(
+				Mathf.Clamp (newSpheres [newSpheres.Count-1].transform.localPosition.x, (float)topPoint.x, (float)topPoint.x),
+			 	newSpheres [newSpheres.Count-1].transform.localPosition.y, 
+				Mathf.Clamp (newSpheres [newSpheres.Count-1].transform.localPosition.z, (float)topPoint.z, (float)topPoint.z));
+		
+	
 		}
 
 
 
-		// top point controller
-//		for (int y = 0; y < topControlPointIndexes.Count; y++) {
-//
-//			if (poityOrNot){
-//				// do pointy top
-//				vertices [topControlPointIndexes[y]] = newSpheres [newSpheres.Count-1].transform.localPosition ;
-//			} else{
-//				//do normal top
-//				vertices [topControlPointIndexes[y]] = new Vector3(
-//					verticesCopy [topControlPointIndexes[y]].x,
-//				newSpheres [newSpheres.Count-1].transform.localPosition.y,
-//					verticesCopy [topControlPointIndexes[y]].z);
-//			}
-//		}
-
-
-//		//clamp x and z on topsphere
-//		newSpheres [newSpheres.Count-1].transform.localPosition = new Vector3(
-//			Mathf.Clamp (newSpheres [newSpheres.Count-1].transform.localPosition.x, (float)topPoint.x, (float)topPoint.x),
-//		 	newSpheres [newSpheres.Count-1].transform.localPosition.y + 40, 
-//			Mathf.Clamp (newSpheres [newSpheres.Count-1].transform.localPosition.z, (float)topPoint.z, (float)topPoint.z));
-//	
-//
+			
 
 
 	}
@@ -540,6 +614,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 //		AddToMesh();
 //		CreateColliders();
 //
+		//CreateColorAndtexture ();
 
 		if (Input.GetMouseButtonDown (0)) {
 
