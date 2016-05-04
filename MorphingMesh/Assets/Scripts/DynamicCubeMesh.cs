@@ -394,25 +394,21 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 		//Material material = new Material (Shader.Find ("Standard"));
 		Material material = new Material(Shader.Find("Self-Illumin/Diffuse"));
-//		//material.color = ExtensionMethods.RandomColor();//Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
+		//material.color = ExtensionMethods.RandomColor();//Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 //		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 //
 		////type 2
 		Texture[] texture = new Texture[] {
-			Resources.Load ("BuildingPattern") as Texture,
-			Resources.Load ("BuildingPattern2") as Texture,
-			Resources.Load ("BuildingPattern3") as Texture,
-			Resources.Load ("BuildingPattern4") as Texture,
-			Resources.Load ("BuildingPattern5") as Texture,
-			Resources.Load ("BuildingPattern6") as Texture,
-			Resources.Load ("BuildingPattern7") as Texture,
-			Resources.Load ("BuildingPattern8") as Texture,
-			Resources.Load ("BuildingPattern9") as Texture,
-			Resources.Load ("TextureComplete1") as Texture,
-			Resources.Load ("TextureComplete2") as Texture,
-			Resources.Load ("TextureComplete3") as Texture,
-			Resources.Load ("TextureComplete4") as Texture,
-			Resources.Load ("StripesTexture5") as Texture
+			Resources.Load ("TextureStripe") as Texture,
+			Resources.Load ("TextureStripe1") as Texture,
+			Resources.Load ("TextureStripe2") as Texture,
+			Resources.Load ("TextureStripe3") as Texture,
+			Resources.Load ("TextureStripe4") as Texture,
+			Resources.Load ("TextureStripe5") as Texture,
+			Resources.Load ("TextureStripe6") as Texture,
+			Resources.Load ("TextureStripe7") as Texture,
+			Resources.Load ("TextureStripe8") as Texture,
+			Resources.Load ("TextureStripe9") as Texture
 		};
 
 
@@ -427,7 +423,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 //			Resources.Load ("window6r") as Texture
 //		};
 
-		int tx = 7;//(int)Mathf.Floor(Random.value * texture.Length);
+		int tx = (int)Mathf.Floor(Random.value * texture.Length);
 
 		Texture2D rit = randomIllumTex(texture[tx].width, texture[tx].height);	
 		material.SetTexture("_MainTex", texture[tx]);
