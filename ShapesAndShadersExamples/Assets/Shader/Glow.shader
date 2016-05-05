@@ -11,7 +11,8 @@
       	_RimPower ("Rim Power", Range(0.5,8.0)) = 3.0
 
     	_SpecColor ("Specular Color", Color) = (0.5,0.5,0.5,1)
-    	_Shininess ("Shininess", Range(0.01, 1)) = 0.078125
+    	_Shininess ("Shininess", Range (0.01, 1)) = 0.7
+
 	}
 
 
