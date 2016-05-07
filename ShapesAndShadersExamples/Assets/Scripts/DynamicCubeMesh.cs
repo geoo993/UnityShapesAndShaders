@@ -17,6 +17,9 @@ public class DynamicCubeMesh : MonoBehaviour {
 	private int currentSphereIndex = 0;
 	private List <GameObject> newSpheres = new List<GameObject>();
 
+	private Texture[] texture = new Texture[] {};
+	private int textureIndex = 0;
+
 	private int xlength = 0;
 	private int ylength = 0;
 	private int zlength = 0;
@@ -69,7 +72,8 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 	void Awake ()
 	{
-		
+		textureIndex = (int)Mathf.Floor (Random.value * texture.Length);
+
 		this.name = "dynamic object";
 		CreateControllPointsIndexes ();
 		MeshAndIndexes ();
@@ -435,7 +439,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 	//		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
 	//
 			////type 2
-			Texture[] texture = new Texture[] {
+			texture = new Texture[] {
 				Resources.Load ("TextureStripe") as Texture,
 				Resources.Load ("TextureStripe1") as Texture,
 				Resources.Load ("TextureStripe2") as Texture,
@@ -450,7 +454,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 
 			////type 2
-	//		Texture[] texture = new Texture[] {
+	//		texture = new Texture[] {
 	//
 	//			Resources.Load ("windowr") as Texture,
 	//			Resources.Load ("window2r") as Texture,
@@ -460,10 +464,10 @@ public class DynamicCubeMesh : MonoBehaviour {
 	//			Resources.Load ("window6r") as Texture
 	//		};
 
-			int tx = 0;//(int)Mathf.Floor (Random.value * texture.Length);
+			//int textureIndex = (int)Mathf.Floor (Random.value * texture.Length);
 
-			Texture2D rit = randomIllumTex (texture [tx].width, texture [tx].height);	
-			material.SetTexture ("_MainTex", texture [tx]);
+			Texture2D rit = randomIllumTex (texture [textureIndex].width, texture [textureIndex].height);	
+			material.SetTexture ("_MainTex", texture [textureIndex]);
 			material.SetTexture ("_BumpMap", rit);
 
 			Vector2 windowsTexture = new Vector2 (16, 32);
@@ -475,7 +479,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 			meshRenderer.material = material;
 
 		}else{
-			//meshRenderer.material = null;
+			meshRenderer.material = null;
 		}
 
 	}
@@ -620,13 +624,13 @@ public class DynamicCubeMesh : MonoBehaviour {
 	void Update()
 	{
 
-//		CreateMesh ();
-//		UpdateVerticesAndPositions ();
-//		CreateTriangles();
-//		AddToMesh();
-//		CreateColliders();
-//
-//		CreateColorAndtexture ();
+		CreateMesh ();
+		UpdateVerticesAndPositions ();
+		CreateTriangles();
+		AddToMesh();
+		CreateColliders();
+
+		CreateColorAndtexture ();
 
 		if (Input.GetMouseButtonDown (0)) {
 
