@@ -22,7 +22,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 	private int zlength = 0;
 
 	public int xSize = 9;
-	private int ySize = 40;
+	[Range(4, 40)] public int ySize = 40;
 	public int zSize = 2;
 	public int roundness = 0;
 	public bool roundTop = false;
@@ -47,7 +47,6 @@ public class DynamicCubeMesh : MonoBehaviour {
 	private int[] triangles; 
 
 	private Vector3[] normals;
-	private Color32[] cubeUV;
 	private Vector2[] uv;
 	private static int
 	SetQuad (int[] triangles, int i, int v00, int v10, int v01, int v11) {
@@ -59,18 +58,18 @@ public class DynamicCubeMesh : MonoBehaviour {
 	}
 
 
-	public enum verticesControlPrefs { sidesVertices, allVertices };
+	public enum verticesControlPrefs { sidesVertices, allVertices, none };
 	public verticesControlPrefs controlType = verticesControlPrefs.allVertices;
 
 	public enum PositioningPrefs { front, back, top, allSides };
 	public PositioningPrefs verticesPrefs = PositioningPrefs.allSides;
 	public bool roof = false;
 
+	public bool addTexture = false;
 
 	void Awake ()
 	{
-		ySize = Random.Range (10, 50);
-
+		
 		this.name = "dynamic object";
 		CreateControllPointsIndexes ();
 		MeshAndIndexes ();
@@ -99,7 +98,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 		int zExtra = zSize - 2;
 		offset = ((xlength * 2 ) + (zSize - 1 + zExtra)) ;
 
-		print (" offset " + offset);
+		//Debug.Log (" offset " + offset);
 
 		for (int x = 0; x < offset + 1; x++) {
 
@@ -145,10 +144,11 @@ public class DynamicCubeMesh : MonoBehaviour {
 		}
 
 
-		////create top sphere
-		topPoint = new Vector3((float)xSize/2,ySize,(float)zSize/2);
-		createSphere (topPoint, newSpheres);
-
+		if (controlType == verticesControlPrefs.sidesVertices ) {
+			////create top sphere
+			topPoint = new Vector3 ((float)xSize / 2, ySize, (float)zSize / 2);
+			createSphere (topPoint, newSpheres);
+		}
 
 	}
 	private void MeshAndIndexes () {
@@ -174,12 +174,15 @@ public class DynamicCubeMesh : MonoBehaviour {
 				createSphere (vertexPos, newSpheres);
 			}
 
-			//top vertices
-			if (vertices [i].y == ySize ) {
-				topControlPointIndexes.Add (i);
+			if (controlType == verticesControlPrefs.sidesVertices) {
+				//top vertices
+				if (vertices [i].y == ySize) {
+					topControlPointIndexes.Add (i);
+				}
 			}
 		}
-		Debug.Log ("  vertices length: "+vertices.Length +"   list of indexes length: "+ listOfIndexes.Count+"  v points: "+verticesCopy.Count);
+
+		//Debug.Log ("  vertices length: "+vertices.Length +"   list of indexes length: "+ listOfIndexes.Count+"  v points: "+verticesCopy.Count);
 
 
 	}
@@ -214,7 +217,6 @@ public class DynamicCubeMesh : MonoBehaviour {
 			(ySize - 1) * (zSize - 1)) * 2;
 		vertices = new Vector3[cornerVertices + edgeVertices + faceVertices];
 		normals = new Vector3[vertices.Length];
-		//cubeUV = new Color32[vertices.Length];
 		uv = new Vector2[vertices.Length];
 	
 		int v = 0;
@@ -418,78 +420,85 @@ public class DynamicCubeMesh : MonoBehaviour {
 
 	private void CreateColorAndtexture() {
 
-		meshRenderer = GetComponent<MeshRenderer>();
+		meshRenderer = GetComponent<MeshRenderer> ();
 
-		//Material material = Resources.Load("Material") as Material;
-		//meshRenderer.material = material;
-
-
-		//Material material = new Material (Shader.Find ("Standard"));
-		//Material material = new Material(Shader.Find("Self-Illumin/Diffuse"));
-		Material material = new Material(Shader.Find("Self-Illumin/Bumped Diffuse"));
-		//material.color = ExtensionMethods.RandomColor();//Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
-//		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
-//
-		////type 2
-		Texture[] texture = new Texture[] {
-			Resources.Load ("TextureStripe") as Texture,
-			Resources.Load ("TextureStripe1") as Texture,
-			Resources.Load ("TextureStripe2") as Texture,
-			Resources.Load ("TextureStripe3") as Texture,
-			Resources.Load ("TextureStripe4") as Texture,
-			Resources.Load ("TextureStripe5") as Texture,
-			Resources.Load ("TextureStripe6") as Texture,
-			Resources.Load ("TextureStripe7") as Texture,
-			Resources.Load ("TextureStripe8") as Texture,
-			Resources.Load ("TextureStripe9") as Texture
-		};
+		if (addTexture)
+		{
+			//Material material = Resources.Load("Material") as Material;
+			//meshRenderer.material = material;
 
 
-		////type 2
-//		Texture[] texture = new Texture[] {
-//
-//			Resources.Load ("windowr") as Texture,
-//			Resources.Load ("window2r") as Texture,
-//			Resources.Load ("window3r") as Texture,
-//			Resources.Load ("window4r") as Texture,
-//			Resources.Load ("window5r") as Texture,
-//			Resources.Load ("window6r") as Texture
-//		};
+			//Material material = new Material (Shader.Find ("Standard"));
+			//Material material = new Material(Shader.Find("Self-Illumin/Diffuse"));
+			Material material = new Material (Shader.Find ("Self-Illumin/Bumped Diffuse"));
+			//material.color = ExtensionMethods.RandomColor();//Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
+	//		//material.color = Color.Lerp(Color.white, ExtensionMethods.RandomColor(), 1f);
+	//
+			////type 2
+			Texture[] texture = new Texture[] {
+				Resources.Load ("TextureStripe") as Texture,
+				Resources.Load ("TextureStripe1") as Texture,
+				Resources.Load ("TextureStripe2") as Texture,
+				Resources.Load ("TextureStripe3") as Texture,
+				Resources.Load ("TextureStripe4") as Texture,
+				Resources.Load ("TextureStripe5") as Texture,
+				Resources.Load ("TextureStripe6") as Texture,
+				Resources.Load ("TextureStripe7") as Texture,
+				Resources.Load ("TextureStripe8") as Texture,
+				Resources.Load ("TextureStripe9") as Texture
+			};
 
-		int tx = (int)Mathf.Floor(Random.value * texture.Length);
 
-		Texture2D rit = randomIllumTex(texture[tx].width, texture[tx].height);	
-		material.SetTexture("_MainTex", texture[tx]);
-		material.SetTexture("_BumpMap", rit);
+			////type 2
+	//		Texture[] texture = new Texture[] {
+	//
+	//			Resources.Load ("windowr") as Texture,
+	//			Resources.Load ("window2r") as Texture,
+	//			Resources.Load ("window3r") as Texture,
+	//			Resources.Load ("window4r") as Texture,
+	//			Resources.Load ("window5r") as Texture,
+	//			Resources.Load ("window6r") as Texture
+	//		};
 
-		Vector2 windowsTexture = new Vector2 (16, 32);
-		Vector2 stripesTexture = new Vector2 (1, 1);
+			int tx = 0;//(int)Mathf.Floor (Random.value * texture.Length);
 
-		material.SetTextureScale ("_MainTex", stripesTexture); //windowsTexture);
-		material.SetTextureScale("_BumpMap", stripesTexture);
+			Texture2D rit = randomIllumTex (texture [tx].width, texture [tx].height);	
+			material.SetTexture ("_MainTex", texture [tx]);
+			material.SetTexture ("_BumpMap", rit);
 
-		meshRenderer.material = material;
+			Vector2 windowsTexture = new Vector2 (16, 32);
+			Vector2 stripesTexture = new Vector2 (1, 1);
+
+			material.SetTextureScale ("_MainTex", stripesTexture); //windowsTexture);
+			material.SetTextureScale ("_BumpMap", stripesTexture);
+
+			meshRenderer.material = material;
+
+		}else{
+			//meshRenderer.material = null;
+		}
 
 	}
 
 	Texture2D randomIllumTex(int w, int h) {
 
-		Texture2D randomIllum = new Texture2D(w, h , TextureFormat.Alpha8, true);
-		int mipCount = randomIllum.mipmapCount;
-		randomIllum.filterMode = FilterMode.Point;
-		for( int mip = 0; mip < mipCount; ++mip ) {
-			Color[] cols = randomIllum.GetPixels( mip );
-			for(int i = 0; i < cols.Length; ++i ) {
-				float rav = Random.value;
-				if(rav < 0.2f) rav = 0.0f;
-				cols[i] = new Color(0, 0, 0, rav);
-			}
-			randomIllum.SetPixels( cols, mip );
-		}
-		randomIllum.Apply(true);
-		return randomIllum;
-	}
+		Texture2D texture = new Texture2D(w, h , TextureFormat.Alpha8, true);
+		int mipCount = texture.mipmapCount;
+		texture.filterMode = FilterMode.Point;
 
+		for( int mip = 0; mip < mipCount; ++mip ) {
+			Color[] cols = texture.GetPixels( mip );
+
+			for(int i = 0; i < cols.Length; ++i ) {
+				float rand = Random.value;
+				if(rand < 0.2f) rand = 0.0f;
+				cols[i] = new Color(0, 0, 0, rand);
+			}
+			texture.SetPixels( cols, mip );
+		}
+		texture.Apply(true);
+		return texture;
+	}
 
 	private void UpdateVerticesAndPositions() {
 
@@ -567,6 +576,9 @@ public class DynamicCubeMesh : MonoBehaviour {
 				}
 
 				break;
+
+
+
 			}
 
 			for (int i = 0; i < newSpheres.Count-1; i++) 
@@ -614,7 +626,7 @@ public class DynamicCubeMesh : MonoBehaviour {
 //		AddToMesh();
 //		CreateColliders();
 //
-		//CreateColorAndtexture ();
+//		CreateColorAndtexture ();
 
 		if (Input.GetMouseButtonDown (0)) {
 
