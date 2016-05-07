@@ -4,10 +4,10 @@ using System.Collections;
 public class TextureColorBasedOnWorldPosition : MonoBehaviour {
 
 
-	[Range(2, 512)] public int resolution = 256;
+	private int resolution = 512;
 
 	private Texture2D texture;
-	[Range(100, 1000)] public int mapsize = 100;
+	[Range(100, 1000)] public int rangeFromCenter = 100;
 
 	public Color ColorInPoint00 = Color.yellow;
 	public Color ColorInPoint10 = Color.blue;
@@ -26,16 +26,10 @@ public class TextureColorBasedOnWorldPosition : MonoBehaviour {
 			// new Texture2D (width , heigth, TextureFormat: format, bool : mipmap)
 			texture = new Texture2D (resolution, resolution, TextureFormat.RGB24, false);
 			//texture = new Texture2D(resolution, resolution, TextureFormat.ARGB32, false);
-			texture.name = "Procedural Texture";
-
-			texture.wrapMode = TextureWrapMode.Clamp;
-			texture.filterMode = FilterMode.Trilinear;//FilterMode.Bilinear; //FilterMode.Point;
-			texture.anisoLevel = 9;
+			texture.name = "color positioning Texture";
 
 			renderer.material.mainTexture = texture;
 		}
-	
-			FillTexture ();
 		
 	}
 
@@ -55,14 +49,14 @@ public class TextureColorBasedOnWorldPosition : MonoBehaviour {
 		}
 
 		//// type 1  - get absolute value of each transform position to reference color
-		Color colorVector3 = new Color (Mathf.Abs ((float)(this.transform.position.x / mapsize)), Mathf.Abs ((float)(this.transform.position.y / mapsize)), Mathf.Abs ((float)(this.transform.position.z / mapsize)));
+		Color colorVector3 = new Color (Mathf.Abs ((float)(this.transform.position.x / rangeFromCenter)), Mathf.Abs ((float)(this.transform.position.y / rangeFromCenter)), Mathf.Abs ((float)(this.transform.position.z / rangeFromCenter)));
 		//Debug.Log (colorVector3);
 
 
 		//// type 2 - get absolute value of each transform position to get the color within each area
-		float tx = Mathf.Abs((float)(this.transform.position.x / mapsize));
-		float ty = Mathf.Abs((float)(this.transform.position.y / mapsize));
-		float tz = Mathf.Abs((float)(this.transform.position.z / mapsize));
+		float tx = Mathf.Abs((float)(this.transform.position.x / rangeFromCenter));
+		float ty = Mathf.Abs((float)(this.transform.position.y / rangeFromCenter));
+		float tz = Mathf.Abs((float)(this.transform.position.z / rangeFromCenter));
 
 
 		////interpolate between the bottom left and top left corner based on y
@@ -75,7 +69,7 @@ public class TextureColorBasedOnWorldPosition : MonoBehaviour {
 
 		Color finalColor = Color.Lerp(xzColor, verticalColor, ty);
 
-		Debug.Log ("xz: "+xzColor+"    final: "+finalColor);
+		//Debug.Log ("xz: "+xzColor+"    final: "+finalColor);
 
 		for (int y = 0; y < resolution; y++) {
 

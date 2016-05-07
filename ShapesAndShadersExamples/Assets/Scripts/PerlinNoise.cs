@@ -3,28 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-public delegate float NoiseMethod (Vector3 point, float frequency, bool interpolate);
-//public delegate float ValueNoiseMethod (Vector3 point, float frequency, bool interpolate);
+//public delegate float PerlinNoiseMethod (Vector3 point, float frequency, bool interpolate);
 
-public static class PseudorandomNoise  {
+public static class PerlinNoise  {
 
 
-	public static NoiseMethod[] valueMethods = {
-		Value1D,
-		Value2D,
-		Value3D
+	public static NoiseMethod[] perlinMethods = {
+		Perlin1D,
+		Perlin2D,
+		Perlin3D
 	};
 
 	private static float Smooth (float t) {
 		return t * t * t * (t * (t * 6f - 15f) + 10f);
 	}
+	private static float Dot2D (Vector2 g, float x, float y) {
+		return g.x * x + g.y * y;
+	}
+	private static float Dot3D (Vector3 g, float x, float y, float z) {
+		return g.x * x + g.y * y + g.z * z;
+	}
 
-//	private static int[] hash = {
-//
-//		////permutation array or a permutation table
-//		////0, 1, 2, 3, 4, 5, 6, 7
-//		4, 12, 11, 8, 13, 10, 1, 5, 3, 7, 2, 0, 14, 6, 9, 15
-//	};
 
 	private static int[] hash = {
 		151,160,137, 91, 90, 15,131, 13,201, 95, 96, 53,194,233,  7,225,
@@ -65,8 +64,51 @@ public static class PseudorandomNoise  {
 
 	private const int hashMask = 255;
 
+	private const int gradientsMask1D = 1;
+	private static float[] gradients1D = {
+		1f, -1f
+	};
 
-	public static float Value1D (Vector3 point, float frequency, bool interpolate) {
+
+	private static float sqr2 = Mathf.Sqrt(2f);
+	private const int gradientsMask2D = 7;
+	private static Vector2[] gradients2D = {
+		new Vector2( 1f, 0f),
+		new Vector2(-1f, 0f),
+		new Vector2( 0f, 1f),
+		new Vector2( 0f,-1f),
+
+		new Vector2( 1f, 1f).normalized,
+		new Vector2(-1f, 1f).normalized,
+		new Vector2( 1f,-1f).normalized,
+		new Vector2(-1f,-1f).normalized
+	};
+		
+
+	private const int gradientsMask3D = 15;
+	private static Vector3[] gradients3D = {
+		new Vector3( 1f, 1f, 0f),
+		new Vector3(-1f, 1f, 0f),
+		new Vector3( 1f,-1f, 0f),
+		new Vector3(-1f,-1f, 0f),
+		new Vector3( 1f, 0f, 1f),
+		new Vector3(-1f, 0f, 1f),
+		new Vector3( 1f, 0f,-1f),
+		new Vector3(-1f, 0f,-1f),
+		new Vector3( 0f, 1f, 1f),
+		new Vector3( 0f,-1f, 1f),
+		new Vector3( 0f, 1f,-1f),
+		new Vector3( 0f,-1f,-1f),
+
+		new Vector3( 1f, 1f, 0f),
+		new Vector3(-1f, 1f, 0f),
+		new Vector3( 0f,-1f, 1f),
+		new Vector3( 0f,-1f,-1f)
+	};
+
+
+
+	public static float Perlin1D (Vector3 point, float frequency, bool interpolate) {
 
 		if (!interpolate) {
 			//////non interpolation
@@ -84,25 +126,31 @@ public static class PseudorandomNoise  {
 			return hash [i] * (1f / hashMask);
 
 		} else {
-			//////with interpolation also called Value noise
+			//////with smooth interpolation also called perlin noise
 			//// perfoming interpolation between two hases, from One for the lattice coordinate to the left of our sample point, and one for the lattice coordinate to the right of it. 
 			point *= frequency;
 			int i0 = Mathf.FloorToInt (point.x);
-			float t = point.x - i0;
+
+			float t0 = point.x - i0;
+			float t1 = t0 - 1f;
 			i0 &= hashMask;
 
 			int i1 = i0 + 1;
 
-			int h0 = hash [i0];
-			int h1 = hash [i1];
+			////gradient
+			float grad0 = gradients1D[hash[i0] & gradientsMask1D];
+			float grad1 = gradients1D[hash[i1] & gradientsMask1D];
 
-			t = Smooth (t);
-			return Mathf.Lerp (h0, h1, t) * (1f / hashMask);
+			float v0 = grad0 * t0;
+			float v1 = grad0 * t1;
+
+			float t = Smooth (t0);
+			return Mathf.Lerp (v0, v1, t) * 2f;
 		}
 	}
 
 
-	public static float Value2D (Vector3 point, float frequency, bool interpolate) {
+	public static float Perlin2D (Vector3 point, float frequency, bool interpolate) {
 
 		if (!interpolate) {
 
@@ -123,8 +171,14 @@ public static class PseudorandomNoise  {
 			point *= frequency;
 			int ix0 = Mathf.FloorToInt (point.x);
 			int iy0 = Mathf.FloorToInt (point.y);
-			float tx = point.x - ix0;
-			float ty = point.y - iy0;
+			float tx0 = point.x - ix0;
+			float ty0 = point.y - iy0;
+			float tx1 = tx0 - 1f;
+			float ty1 = tx0 - 1f;
+
+
+
+
 			ix0 &= hashMask;
 			iy0 &= hashMask;
 
@@ -133,19 +187,29 @@ public static class PseudorandomNoise  {
 
 			int h0 = hash [ix0];
 			int h1 = hash [ix1];
-			int h00 = hash [h0 + iy0];
-			int h10 = hash [h1 + iy0];
-			int h01 = hash [h0 + iy1];
-			int h11 = hash [h1 + iy1];
 
+			////gradient
+			Vector2 grad00 = gradients2D[hash [h0 + iy0] & gradientsMask2D];
+			Vector2 grad10 = gradients2D[hash [h1 + iy0] & gradientsMask2D];
 
-			tx = Smooth (tx);
-			ty = Smooth (ty);
-			return Mathf.Lerp (Mathf.Lerp (h00, h10, tx), Mathf.Lerp (h01, h11, tx), ty) * (1f / hashMask);
+			Vector2 grad01 = gradients2D[hash [h0 + iy1] & gradientsMask2D];
+			Vector2 grad11 = gradients2D[hash [h1 + iy1] & gradientsMask2D];
+
+			float v00 = Dot2D( grad00, tx0, ty0);
+			float v10 = Dot2D (grad10, tx1, ty0);
+			float v01 = Dot2D( grad01, tx0, ty1);
+			float v11 = Dot2D( grad11, tx1, ty1);
+
+			float tx = Smooth (tx0);
+			float ty = Smooth (ty0);
+
+			return Mathf.Lerp (
+				Mathf.Lerp (v00, v10, tx), 
+				Mathf.Lerp (v01, v11, tx), ty) * sqr2;
 		}
 	}
 
-	public static float Value3D (Vector3 point, float frequency, bool interpolate) {
+	public static float Perlin3D (Vector3 point, float frequency, bool interpolate) {
 
 		if (!interpolate) {
 			//////non interpolation
@@ -167,9 +231,13 @@ public static class PseudorandomNoise  {
 			int ix0 = Mathf.FloorToInt (point.x);
 			int iy0 = Mathf.FloorToInt (point.y);
 			int iz0 = Mathf.FloorToInt (point.z);
-			float tx = point.x - ix0;
-			float ty = point.y - iy0;
-			float tz = point.z - iz0;
+			float tx0 = point.x - ix0;
+			float ty0 = point.y - iy0;
+			float tz0 = point.z - iz0;
+			float tx1 = tx0 - 1f;
+			float ty1 = ty0 - 1f;
+			float tz1 = tz0 - 1f;
+
 			ix0 &= hashMask;
 			iy0 &= hashMask;
 			iz0 &= hashMask;
@@ -183,22 +251,36 @@ public static class PseudorandomNoise  {
 			int h10 = hash [h1 + iy0];
 			int h01 = hash [h0 + iy1];
 			int h11 = hash [h1 + iy1];
-			int h000 = hash [h00 + iz0];
-			int h100 = hash [h10 + iz0];
-			int h010 = hash [h01 + iz0];
-			int h110 = hash [h11 + iz0];
-			int h001 = hash [h00 + iz1];
-			int h101 = hash [h10 + iz1];
-			int h011 = hash [h01 + iz1];
-			int h111 = hash [h11 + iz1];
 
-			tx = Smooth (tx);
-			ty = Smooth (ty);
-			tz = Smooth (tz);
+
+			Vector3 grad000 = gradients3D[hash[h00 + iz0] & gradientsMask3D];
+			Vector3 grad100 = gradients3D[hash[h10 + iz0] & gradientsMask3D];
+			Vector3 grad010 = gradients3D[hash[h01 + iz0] & gradientsMask3D];
+			Vector3 grad110 = gradients3D[hash[h11 + iz0] & gradientsMask3D];
+			Vector3 grad001 = gradients3D[hash[h00 + iz1] & gradientsMask3D];
+			Vector3 grad101 = gradients3D[hash[h10 + iz1] & gradientsMask3D];
+			Vector3 grad011 = gradients3D[hash[h01 + iz1] & gradientsMask3D];
+			Vector3 grad111 = gradients3D[hash[h11 + iz1] & gradientsMask3D];
+
+			float v000 = Dot3D(grad000, tx0, ty0, tz0);
+			float v100 = Dot3D(grad100, tx1, ty0, tz0);
+			float v010 = Dot3D(grad010, tx0, ty1, tz0);
+			float v110 = Dot3D(grad110, tx1, ty1, tz0);
+			float v001 = Dot3D(grad001, tx0, ty0, tz1);
+			float v101 = Dot3D(grad101, tx1, ty0, tz1);
+			float v011 = Dot3D(grad011, tx0, ty1, tz1);
+			float v111 = Dot3D(grad111, tx1, ty1, tz1);
+
+			float tx = Smooth (tx0);
+			float ty = Smooth (ty0);
+			float tz = Smooth (tz0);
+
 			return Mathf.Lerp (
-				Mathf.Lerp (Mathf.Lerp (h000, h100, tx), Mathf.Lerp (h010, h110, tx), ty),
-				Mathf.Lerp (Mathf.Lerp (h001, h101, tx), Mathf.Lerp (h011, h111, tx), ty),
-				tz) * (1f / hashMask);
+				Mathf.Lerp (Mathf.Lerp (v000, v100, tx), 
+				Mathf.Lerp (v010, v110, tx), ty),
+				Mathf.Lerp (Mathf.Lerp (v001, v101, tx), 
+				Mathf.Lerp (v011, v111, tx), ty),
+				tz);
 		}
 	}
 
