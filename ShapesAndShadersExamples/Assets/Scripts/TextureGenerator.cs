@@ -36,7 +36,7 @@ public class TextureGenerator : MonoBehaviour {
 
 	Color[] colors = new Color[]
 	{
-		//Color.red, 
+		Color.red, 
 		Color.yellow, 
 		Color.green, 
 		//Color.blue,
@@ -326,6 +326,22 @@ public class TextureGenerator : MonoBehaviour {
 //		print ("power multiplication of stripeLoop:  " + stripeResolution);
 	}
 
+	private void windowsArray (){
+
+		int[] arr = new int[51];
+
+		for (int i = 0; i < 51; i++) {
+
+			arr[i] = i;
+			//print (arr[i]);
+		}
+
+		for (int a = 0; a < arr.Length/3; a++) {
+
+			print(a * 3);
+		}
+
+	}
 
 	private void UpdateStripesColor()
 	{
