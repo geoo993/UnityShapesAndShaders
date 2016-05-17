@@ -345,6 +345,121 @@ public class TextureGenerator : MonoBehaviour {
 
 	private void UpdateStripesColor()
 	{
+		//print (stripeResolution);
+
+//
+//		int introLoop = 0;
+//		int midLoop = 0;
+//		int index = 0; 
+//
+//
+//		//		switch (cases) {
+//		//
+//		//		case 0:
+//		//			introLoop = 0;
+//		//			midLoop = (stripeResolution / 2);
+//		//			//index   (a * 2) ///in twos from 0
+//		//
+//		//			break;
+//		//		case 1: 
+//		//			introLoop = 1;
+//		//			midLoop = (stripeResolution / 2) + 1;
+//		//			//index   (a * 2) - 1    ///in twos from 1
+//		//
+//		//			break;
+//		//		case 2: 
+//		//			introLoop = 0;
+//		//			midLoop = ((stripeResolution + 1) / 3) + 1;
+//		//
+//		//			///index (i * 3)   //in threes from 0
+//		//
+//		//			break;
+//		//		case 3: 
+//		//			introLoop = 1;
+//		//			midLoop = ((stripeResolution + 1) / 3) + 1;
+//		//
+//		//			//index (a * 3) ///in threes eliminating -1 at start
+//		//			//index (a * 3) - 1  ///in threes from 2
+//		//			//index (a * 3) - 2   /////in threes from 1
+//		//
+//		//			break;
+//		//		case 4: 
+//		//			introLoop = 1;
+//		//			midLoop = ((stripeResolution + 1) / 3) + 1;
+//		//			//index (a * 3) - 2   /////in threes from 1
+//		//
+//		//			break;
+//		//		case 5: 
+//		//			introLoop = 0;
+//		//			midLoop = (stripeResolution );
+//		//			/////loop trough all
+//		//
+//		//			break;
+//		//		}
+//		//
+//		//		for (int i = introLoop; i < midLoop; i++) {
+//		//			
+//		//
+//		//			switch (cases) {
+//		//
+//		//			case 0:
+//		//				index = (i * 2) ;
+//		//				break;
+//		//			case 1:
+//		//				index = (i * 2) - 1;
+//		//				break;
+//		//			case 2:
+//		//				index = (i * 3) ;
+//		//				break;
+//		//			case 3:
+//		//				index = (i * 3) - 1;
+//		//				break;
+//		//			case 4:
+//		//				index = (i * 3) - 2;
+//		//				break;
+//		//			case 5:
+//		//				index = i;
+//		//				break;
+//		//			}
+
+
+//		midLoop = stripeResolution;//windowsIndexes.Count - 1;
+//
+//		for (int i = introLoop; i < midLoop; i++) {
+//
+//			index = i;//windowsIndexes [i];
+//
+//			if (id [index] < 1.0f) {
+//
+//				id [index] += Time.deltaTime * (1.0f / times [index]);
+//			} else {
+//				id [index] = 0;
+//				times [index] = Random.Range (5, 15f);
+//
+//				interpolateColorsA [index] = interpolateComplete [index];
+//				interpolateColorsB [index] = colors [Random.Range (0, colors.Length - 1)];
+//			}
+//
+//			interpolateComplete [index] = Color.Lerp (interpolateColorsA [index], interpolateColorsB [index], id [index]);
+//
+//
+//			int xMin = ((int)pixelsPoints [index] [pixelsPoints [index].Length - 1].x - (int)stripeFrequency);
+//			int xMax = (int)pixelsPoints [index] [pixelsPoints [index].Length - 1].x;
+//
+//			int yMin = ((int)pixelsPoints [index] [pixelsPoints [index].Length - 1].y - (int)stripeFrequency);  
+//			int yMax = (int)pixelsPoints [index] [pixelsPoints [index].Length - 1].y;
+//
+//			for (int u = yMin; u < yMax; u++) {
+//
+//				for (int h = xMin; h < xMax; h++) {
+//
+//					//print (texture.GetPixel (h , u ));
+//					texture.SetPixel (h, u, interpolateComplete [index]);
+//				}
+//			}
+//
+//		}
+
 
 		if (textureType == TextureType.Stripes) {
 
