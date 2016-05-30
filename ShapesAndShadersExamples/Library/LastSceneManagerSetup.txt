@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/Texture.unity
+- path: Assets/Scenes/Explosion.unity
   isLoaded: 1
   isActive: 1
